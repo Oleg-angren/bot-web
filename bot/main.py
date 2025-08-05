@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 # Токен
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 if not BOT_TOKEN:
-    raise ValueError("BOT_TOKEN не задан в переменных окружения")
+    raise ValueError("BOT_TOKEN не задан")
 
 # Бот и диспетчер
 bot = Bot(token=BOT_TOKEN)
@@ -21,7 +21,7 @@ dp = Dispatcher()
 # Обработчик /start
 @dp.message(Command("start"))
 async def cmd_start(message: Message):
-    await message.answer("🚀 Бот запущен на Render (Worker)!")
+    await message.answer("🚀 Бот работает 24/7 на Render (Worker)!")
 
 # Эхо
 @dp.message()
@@ -31,10 +31,9 @@ async def echo(message: Message):
 # Запуск
 async def main():
     logger.info("Бот запускается...")
-    # Удаляем вебхук на всякий случай
     await bot.delete_webhook(drop_pending_updates=True)
-    # Запускаем polling
     await dp.start_polling(bot)
 
 if __name__ == "__main__":
     asyncio.run(main())
+
