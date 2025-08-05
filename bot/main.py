@@ -49,10 +49,10 @@ async def on_startup(app):
     except Exception as e:
         logger.error(f"❌ Ошибка при установке вебхука: {type(e).__name__}: {e}")
 
-#async def on_shutdown(app):
- #   await bot.delete_webhook()
-  #  await bot.session.close()
-   # logger.info("💤 Webhook удалён, сессия бота закрыта")
+async def on_shutdown(app):
+    await bot.delete_webhook()
+    await bot.session.close()
+    logger.info("💤 Webhook удалён, сессия бота закрыта")
 
 # Обработчик вебхука
 async def handle_webhook(request):
