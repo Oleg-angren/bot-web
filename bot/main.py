@@ -10,19 +10,16 @@ import os
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
- 
 # Токен и URL
 BOT_TOKEN = os.getenv("BOT_TOKEN")
-APP_HOST = "0.0.0.0"
-APP_PORT = int(os.getenv("PORT", 10000))
+if not BOT_TOKEN:
+    raise ValueError("BOT_TOKEN не задан")
 
 # Формируем URL: RENDER_EXTERNAL_HOSTNAME уже содержит .onrender.com
 RENDER_EXTERNAL_HOSTNAME = os.getenv("RENDER_EXTERNAL_HOSTNAME")
 if RENDER_EXTERNAL_HOSTNAME:
-    # Используем напрямую
     WEBHOOK_URL = f"https://{RENDER_EXTERNAL_HOSTNAME}"
 else:
-    # Для локальной разработки
     WEBHOOK_URL = "http://localhost:8000"
 
 # Настройки сервера
@@ -31,7 +28,7 @@ APP_PORT = int(os.getenv("PORT", 10000))
 
 # Создаём бота и диспетчер
 bot = Bot(token=BOT_TOKEN)
-dp = Dispatcher()
+dp = Dispatcher(bot=bot)  # ✅ Передаём бота в диспетчер
 
 # Обработчик /start
 @dp.message(Command("start"))
@@ -58,7 +55,7 @@ async def on_shutdown(app):
 async def handle_webhook(request):
     try:
         update = await request.json()
-        await dp.feed_update(update)
+        await dp.feed_update(update)  # ✅ Только update
         return web.Response(status=200)
     except Exception as e:
         logger.error(f"Ошибка при обработке вебхука: {e}")
@@ -70,7 +67,7 @@ app.on_startup.append(on_startup)
 app.on_shutdown.append(on_shutdown)
 app.router.add_post("/webhook", handle_webhook)
 
-# Health check (опционально, чтобы убрать 404 на /)
+# Health check
 async def health_check(request):
     return web.Response(text="OK", content_type="text/plain")
 
