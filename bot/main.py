@@ -20,7 +20,6 @@ RENDER_EXTERNAL_HOSTNAME = os.getenv("RENDER_EXTERNAL_HOSTNAME")
 if RENDER_EXTERNAL_HOSTNAME:
     WEBHOOK_URL = f"https://{RENDER_EXTERNAL_HOSTNAME}"
 else:
-    # Для локальной разработки
     WEBHOOK_URL = "http://localhost:8000"
 
 # Порт и хост
@@ -29,7 +28,12 @@ APP_PORT = int(os.getenv("PORT", 10000))
 
 # === СОЗДАНИЕ БОТА И ДИСПЕТЧЕРА ===
 bot = Bot(token=BOT_TOKEN)
+
+# Ключевое исправление: создаём dp без bot, потом привязываем
 dp = Dispatcher()
+
+# Явно привязываем бота к диспетчеру
+dp['bot'] = bot  # или можно использовать dp.bot = bot, но лучше так
 
 # === ОБРАБОТЧИКИ ===
 @dp.message(Command("start"))
@@ -55,20 +59,20 @@ async def on_shutdown(app):
         await bot.session.close()
         logger.info("💤 Вебхук удалён, сессия бота закрыта")
     except Exception as e:
-        logger.error(f"Ошибка при завершении: {e}")
+        logger.error(f"❌ Ошибка при завершении: {e}")
 
 # Обработчик вебхука
 async def handle_webhook(request):
     try:
         update = await request.json()
-        # Ключевое исправление: передаём bot и update
-        await dp.feed_update(bot, update)
+        # Передаём только update — dp уже знает о bot через dp['bot']
+        await dp.feed_update(update)
         return web.Response(status=200)
     except Exception as e:
         logger.error(f"❌ Ошибка при обработке вебхука: {e}")
         return web.Response(status=500)
 
-# Health check (чтобы Render не видел 404)
+# Health check
 async def health_check(request):
     return web.Response(text="OK", content_type="text/plain")
 
