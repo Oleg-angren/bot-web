@@ -1,18 +1,18 @@
 import asyncio
 import logging
-from aiogram import Bot, Dispatcher, types
+from aiogram import Bot, Dispatcher
 from aiogram.filters import Command
-from dotenv import load_dotenv
+from aiogram.types import Message
 import os
 
 # Логирование
 logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
-# Загружаем токен
-load_dotenv()
+# Токен
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 if not BOT_TOKEN:
-    raise ValueError("BOT_TOKEN не установлен")
+    raise ValueError("BOT_TOKEN не задан в переменных окружения")
 
 # Бот и диспетчер
 bot = Bot(token=BOT_TOKEN)
@@ -20,18 +20,20 @@ dp = Dispatcher()
 
 # Обработчик /start
 @dp.message(Command("start"))
-async def cmd_start(message: types.Message):
-    await message.answer("🚀 Бот запущен! Работает на Render.com")
+async def cmd_start(message: Message):
+    await message.answer("🚀 Бот запущен! Работает 24/7 на Render (Worker)!")
 
 # Эхо
 @dp.message()
-async def echo(message: types.Message):
+async def echo(message: Message):
     await message.answer(f"Ты сказал: {message.text}")
 
-# Запуск
+# Запуск бота
 async def main():
-    logging.info("Запуск бота...")
+    logger.info("Бот запускается...")
+    # Удаляем вебхук на всякий случай
     await bot.delete_webhook(drop_pending_updates=True)
+    # Запускаем polling
     await dp.start_polling(bot)
 
 if __name__ == "__main__":
