@@ -58,7 +58,7 @@ async def on_shutdown(app):
 async def handle_webhook(request):
     try:
         update = await request.json()
-        await dp.feed_update(bot, update)
+        await dp.feed_update(update)
         return web.Response(status=200)
     except Exception as e:
         logger.error(f"Ошибка при обработке вебхука: {e}")
