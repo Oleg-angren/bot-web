@@ -69,7 +69,7 @@ async def handle_webhook(request):
 
         # Ключевой момент: передаём ТОЛЬКО update
         # dp уже знает о bot через dp["bot"] = bot
-        await dp.feed_update(update)
+        await dp.feed_update(bot, update)
 
         return web.Response(status=200)
     except Exception as e:
