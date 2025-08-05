@@ -42,18 +42,17 @@ async def echo(message: Message):
 #запуск сервера
 async def on_startup(app):
     webhook_url = f"{WEBHOOK_URL}/webhook"
-    logger.info(f"Попытка установить вебхук: {webhook_url}")
-    
-    result = await bot.set_webhook(webhook_url)
-    if result:
-        logger.info("✅ Вебхук успешно установлен")
-    else:
-        logger.error("❌ Не удалось установить вебхук")
+    logger.info(f"🔧 Попытка установить вебхук: {webhook_url}")
+    try:
+        await bot.set_webhook(webhook_url)
+        logger.info(f"✅ Вебхук успешно установлен: {webhook_url}")
+    except Exception as e:
+        logger.error(f"❌ Ошибка при установке вебхука: {type(e).__name__}: {e}")
 
-async def on_shutdown(app):
-    await bot.delete_webhook()
-    await bot.session.close()
-    logger.info("💤 Webhook удалён, сессия бота закрыта")
+#async def on_shutdown(app):
+ #   await bot.delete_webhook()
+  #  await bot.session.close()
+   # logger.info("💤 Webhook удалён, сессия бота закрыта")
 
 # Обработчик вебхука
 async def handle_webhook(request):
