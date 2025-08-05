@@ -10,14 +10,16 @@ import os
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# Получаем токен
+ 
+# Токен и URL
 BOT_TOKEN = os.getenv("BOT_TOKEN")
-if not BOT_TOKEN:
-    raise ValueError("BOT_TOKEN не задан")
+APP_HOST = "0.0.0.0"
+APP_PORT = int(os.getenv("PORT", 10000))
 
-# Определяем URL вебхука
+# Формируем URL: RENDER_EXTERNAL_HOSTNAME уже содержит .onrender.com
 RENDER_EXTERNAL_HOSTNAME = os.getenv("RENDER_EXTERNAL_HOSTNAME")
 if RENDER_EXTERNAL_HOSTNAME:
+    # Используем напрямую
     WEBHOOK_URL = f"https://{RENDER_EXTERNAL_HOSTNAME}"
 else:
     # Для локальной разработки
