@@ -22,7 +22,7 @@ if RENDER_EXTERNAL_HOSTNAME:
 else:
     WEBHOOK_URL = "http://localhost:8000"
 
-# Порт и хост
+# Порт и хост 
 APP_HOST = "0.0.0.0"
 APP_PORT = int(os.getenv("PORT", 10000))
 
