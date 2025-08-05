@@ -11,7 +11,8 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 # === ТОКЕН И URL ===
-BOT_TOKEN = os.getenv("BOT_TOKEN")
+#BOT_TOKEN = os.getenv("BOT_TOKEN")
+BOT_TOKEN = (7788110191:AAHTtyz6uDcPq3eX0Xykqon4LJMTd7aPUjI)
 if not BOT_TOKEN:
     raise ValueError("BOT_TOKEN не задан")
 
