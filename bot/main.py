@@ -13,7 +13,11 @@ logging.basicConfig(level=logging.INFO)
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 APP_HOST = "0.0.0.0"  # Не меняй
 APP_PORT = int(os.getenv("PORT", 10000))  # Render даст PORT
-WEBHOOK_URL = f"https://{os.getenv('RENDER_EXTERNAL_HOSTNAME')}.onrender.com"
+RENDER_EXTERNAL_HOSTNAME = os.getenv("RENDER_EXTERNAL_HOSTNAME")
+if RENDER_EXTERNAL_HOSTNAME:
+    WEBHOOK_URL = f"https://{RENDER_EXTERNAL_HOSTNAME}.onrender.com"
+else:
+    WEBHOOK_URL = "http://localhost:8000"  # или ваш тестовый URL
 
 if not BOT_TOKEN:
     raise ValueError("BOT_TOKEN не задан")
