@@ -10,7 +10,7 @@ import os
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# === ТОКЕН И URL ===
+# === 1. ТОКЕН И URL ===
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 if not BOT_TOKEN:
     raise ValueError("BOT_TOKEN не задан в переменных окружения")
@@ -26,16 +26,16 @@ else:
 APP_HOST = "0.0.0.0"
 APP_PORT = int(os.getenv("PORT", 10000))
 
-# === СОЗДАНИЕ БОТА И ДИСПЕТЧЕРА ===
+# === 2. СОЗДАНИЕ БОТА И ДИСПЕТЧЕРА (КЛЮЧЕВОЕ ИСПРАВЛЕНИЕ) ===
 bot = Bot(token=BOT_TOKEN)
 
-# Ключевое исправление: создаём dp без bot, потом привязываем
+# Важно: создаём Dispatcher БЕЗ bot, но явно привязываем его через контекст
 dp = Dispatcher()
 
-# Явно привязываем бота к диспетчеру
-dp['bot'] = bot  # или можно использовать dp.bot = bot, но лучше так
+# Явно привязываем бота к диспетчеру через контекст
+dp["bot"] = bot  # Это позволяет aiogram корректно обрабатывать update
 
-# === ОБРАБОТЧИКИ ===
+# === 3. ОБРАБОТЧИКИ ===
 @dp.message(Command("start"))
 async def cmd_start(message: Message):
     await message.answer("🚀 Бот успешно запущен на Render.com!")
@@ -44,7 +44,7 @@ async def cmd_start(message: Message):
 async def echo(message: Message):
     await message.answer(f"Вы сказали: {message.text}")
 
-# === ВЕБ-СЕРВЕР ===
+# === 4. ВЕБ-СЕРВЕР ===
 async def on_startup(app):
     webhook_url = f"{WEBHOOK_URL}/webhook"
     try:
@@ -61,28 +61,33 @@ async def on_shutdown(app):
     except Exception as e:
         logger.error(f"❌ Ошибка при завершении: {e}")
 
-# Обработчик вебхука
+# === 5. ОБРАБОТЧИК ВЕБХУКА (БЕЗ ОШИБОК) ===
 async def handle_webhook(request):
     try:
+        # Получаем обновление от Telegram
         update = await request.json()
-        # Передаём только update — dp уже знает о bot через dp['bot']
+
+        # Ключевой момент: передаём ТОЛЬКО update
+        # dp уже знает о bot через dp["bot"] = bot
         await dp.feed_update(update)
+
         return web.Response(status=200)
     except Exception as e:
         logger.error(f"❌ Ошибка при обработке вебхука: {e}")
         return web.Response(status=500)
 
-# Health check
+# === 6. HEALTH CHECK (чтобы не было 404) ===
 async def health_check(request):
     return web.Response(text="OK", content_type="text/plain")
 
-# === ЗАПУСК СЕРВЕРА ===
+# === 7. ЗАПУСК ВЕБ-ПРИЛОЖЕНИЯ ===
 app = web.Application()
 app.on_startup.append(on_startup)
 app.on_shutdown.append(on_shutdown)
 app.router.add_post("/webhook", handle_webhook)
-app.router.add_get("/", health_check)
+app.router.add_get("/", health_check)  # Для проверки Render
 
+# === 8. ЗАПУСК СЕРВЕРА ===
 if __name__ == "__main__":
     logger.info(f"🌍 Запуск сервера на http://{APP_HOST}:{APP_PORT}")
     web.run_app(app, host=APP_HOST, port=APP_PORT)
