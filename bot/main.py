@@ -29,7 +29,7 @@ APP_PORT = int(os.getenv("PORT", 10000))
 # === СОЗДАНИЕ БОТА И ДИСПЕТЧЕРА ===
 bot = Bot(token=BOT_TOKEN)
 dp = Dispatcher()
-dp.include_router(dp)
+
 
 # Явно привязываем бота к диспетчеру
 dp.bot = bot
