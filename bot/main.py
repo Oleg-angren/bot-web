@@ -8,23 +8,26 @@ import os
 
 # Логирование
 logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
-# Токен и URL
+# Получаем токен
 BOT_TOKEN = os.getenv("BOT_TOKEN")
-APP_HOST = "0.0.0.0"  # Не меняй
-APP_PORT = int(os.getenv("PORT", 10000))  # Render даст PORT
-RENDER_EXTERNAL_HOSTNAME = os.getenv("RENDER_EXTERNAL_HOSTNAME")
-if RENDER_EXTERNAL_HOSTNAME:
-    WEBHOOK_URL = f"https://{RENDER_EXTERNAL_HOSTNAME}.onrender.com"
-else:
-    WEBHOOK_URL = "http://localhost:8000"  # или ваш тестовый URL
-
 if not BOT_TOKEN:
     raise ValueError("BOT_TOKEN не задан")
-if not WEBHOOK_URL:
-    raise ValueError("RENDER_EXTERNAL_HOSTNAME не задан (убедитесь, что сервис задеплоен)")
 
-# Бот и диспетчер
+# Определяем URL вебхука
+RENDER_EXTERNAL_HOSTNAME = os.getenv("RENDER_EXTERNAL_HOSTNAME")
+if RENDER_EXTERNAL_HOSTNAME:
+    WEBHOOK_URL = f"https://{RENDER_EXTERNAL_HOSTNAME}"
+else:
+    # Для локальной разработки
+    WEBHOOK_URL = "http://localhost:8000"
+
+# Настройки сервера
+APP_HOST = "0.0.0.0"
+APP_PORT = int(os.getenv("PORT", 10000))
+
+# Создаём бота и диспетчер
 bot = Bot(token=BOT_TOKEN)
 dp = Dispatcher()
 
@@ -42,17 +45,22 @@ async def echo(message: Message):
 async def on_startup(app):
     webhook_url = f"{WEBHOOK_URL}/webhook"
     await bot.set_webhook(webhook_url)
-    logging.info(f"Webhook установлен: {webhook_url}")
+    logger.info(f"✅ Webhook установлен: {webhook_url}")
 
 async def on_shutdown(app):
     await bot.delete_webhook()
     await bot.session.close()
+    logger.info("💤 Webhook удалён, сессия бота закрыта")
 
 # Обработчик вебхука
 async def handle_webhook(request):
-    update = await request.json()
-    await dp.feed_update(bot, update)
-    return web.Response()
+    try:
+        update = await request.json()
+        await dp.feed_update(bot, update)
+        return web.Response(status=200)
+    except Exception as e:
+        logger.error(f"Ошибка при обработке вебхука: {e}")
+        return web.Response(status=500)
 
 # Создание веб-приложения
 app = web.Application()
@@ -60,6 +68,13 @@ app.on_startup.append(on_startup)
 app.on_shutdown.append(on_shutdown)
 app.router.add_post("/webhook", handle_webhook)
 
+# Health check (опционально, чтобы убрать 404 на /)
+async def health_check(request):
+    return web.Response(text="OK", content_type="text/plain")
+
+app.router.add_get("/", health_check)
+
 # Запуск
 if __name__ == "__main__":
+    logger.info(f"🌍 Сервис запускается на http://{APP_HOST}:{APP_PORT}")
     web.run_app(app, host=APP_HOST, port=APP_PORT)
