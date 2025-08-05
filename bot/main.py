@@ -28,7 +28,10 @@ APP_PORT = int(os.getenv("PORT", 10000))
 
 # Создаём бота и диспетчер
 bot = Bot(token=BOT_TOKEN)
-dp = Dispatcher(bot=bot)  # ✅ Передаём бота в диспетчер
+#dp = Dispatcher(bot=bot)     ✅ Передаём бота в диспетчер 
+dp = Dispatcher()
+dp.bot = bot
+logger.info(f"dp.bot = {dp.bot}")
 
 # Обработчик /start
 @dp.message(Command("start"))
