@@ -39,12 +39,16 @@ async def cmd_start(message: Message):
 @dp.message()
 async def echo(message: Message):
     await message.answer(f"Ты сказал: {message.text}")
-
-# Запуск веб-сервера
+#запуск сервера
 async def on_startup(app):
     webhook_url = f"{WEBHOOK_URL}/webhook"
-    await bot.set_webhook(webhook_url)
-    logger.info(f"✅ Webhook установлен: {webhook_url}")
+    logger.info(f"Попытка установить вебхук: {webhook_url}")
+    
+    result = await bot.set_webhook(webhook_url)
+    if result:
+        logger.info("✅ Вебхук успешно установлен")
+    else:
+        logger.error("❌ Не удалось установить вебхук")
 
 async def on_shutdown(app):
     await bot.delete_webhook()
