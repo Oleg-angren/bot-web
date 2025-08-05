@@ -1,9 +1,10 @@
 services:
-  - type: worker
+  - type: web
     name: telegram-bot
     runtime: python
     buildCommand: "pip install -r requirements.txt"
     startCommand: "python bot/main.py"
+    healthCheckPath: /health  # ← Render будет проверять этот путь
     envVars:
       - key: BOT_TOKEN
         sync: false
