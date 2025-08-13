@@ -1,5 +1,5 @@
 services:
-  - type: web
+  - type: Worker.
     name: telegram-bot
     runtime: python
     buildCommand: "pip install --no-cache-dir -r requirements.txt"
