@@ -18,7 +18,8 @@ if not BOT_TOKEN:
 # URL
 RENDER_EXTERNAL_HOSTNAME = os.getenv("RENDER_EXTERNAL_HOSTNAME")
 if RENDER_EXTERNAL_HOSTNAME:
-    WEBHOOK_URL = f"https://{RENDER_EXTERNAL_HOSTNAME}.onrender.com"
+    # Используем напрямую — он уже содержит .onrender.com
+    WEBHOOK_URL = f"https://{RENDER_EXTERNAL_HOSTNAME}"
 else:
     WEBHOOK_URL = "http://localhost:8000"
 
