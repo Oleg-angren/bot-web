@@ -48,6 +48,10 @@ async def handle_webhook(request):
     try:
         update_data = await request.json()
         logger.info(f"Получено обновление: {update_data}")
+        from aiogram import Dispatcher
+if not isinstance(dp, Dispatcher):
+    logger.warning("dp не является Dispatcher! Пересоздаю...")
+    dp = Dispatcher()
         await dp.feed_update(update_data)
         return web.Response(status=200, text="OK")
     except Exception as e:
