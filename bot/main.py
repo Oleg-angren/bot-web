@@ -43,12 +43,13 @@ async def echo(message: Message):
 # Обработчик вебхука
 async def handle_webhook(request):
     try:
-        update = await request.json()
-        await dp.feed_update(update)
-        return web.Response(status=200)
+        update_data = await request.json()
+        logger.info(f"Получено обновление: {update_data}")
+        await dp.feed_update(update_data)
+        return web.Response(status=200, text="OK")
     except Exception as e:
-        logger.error(f"Ошибка: {e}")
-        return web.Response(status=500)
+        logger.error(f"Ошибка при обработке вебхука: {e}", exc_info=True)
+        return web.Response(status=500, text="Internal Server Error")
 
 # Health check
 async def health_check(request):
