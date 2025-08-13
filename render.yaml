@@ -2,7 +2,7 @@ services:
   - type: web
     name: telegram-bot
     runtime: python
-    buildCommand: "pip install -r requirements.txt"
+    buildCommand: "pip install --no-cache-dir -r requirements.txt"
     startCommand: "python bot/main.py"
     healthCheckPath: /health  # ← Render будет проверять этот путь
     envVars:
