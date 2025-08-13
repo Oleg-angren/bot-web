@@ -1,3 +1,6 @@
+from aiogram import Dispatcher
+print("Dispatcher из aiogram:", Dispatcher)
+
 import asyncio
 import logging
 from aiogram import Bot, Dispatcher
