@@ -1,54 +1,73 @@
+import asyncio
 import logging
-from aiogram import Bot, Dispatcher, executor, types
 import os
 
-# Настройка логирования
-logging.basicConfig(level=logging.INFO)  # Уровень логирования (DEBUG, INFO, WARNING, ERROR, CRITICAL)
+from aiogram import Bot, Dispatcher, types
+from aiogram.types import BotCommand
+from aiogram.webhook import WebAppInfo
 
+# Настройка логирования
+logging.basicConfig(level=logging.INFO)
+
+# Настройка переменных окружения
 BOT_TOKEN = os.getenv("BOT_TOKEN")
-WEBHOOK_URL = os.getenv("WEBHOOK_URL")
+WEBHOOK_URL = os.getenv("WEBHOOK_URL")  # URL вашего сервиса Render
 WEBHOOK_PATH = "/webhook"
 WEBHOOK_ROUTE = WEBHOOK_URL + WEBHOOK_PATH
+WEBAPP_HOST = "0.0.0.0"
+WEBAPP_PORT = int(os.environ.get("PORT", 8000))
 
+# Инициализация бота и диспетчера
 bot = Bot(token=BOT_TOKEN)
 dp = Dispatcher(bot)
 
-# Пример логирования входящего сообщения
-@dp.message_handler()
-async def echo(message: types.Message):
-    logging.info(f"Received message: {message.text} from user {message.from_user.id}")
-    await message.reply(message.text)
 
-async def on_startup(dp):
-    await bot.set_webhook(WEBHOOK_ROUTE)
+async def on_startup(bot: Bot):
+    # Установка Webhook
+    await bot.set_webhook(WEBHOOK_ROUTE, drop_pending_updates=True)
 
-async def on_shutdown(dp):
-    await bot.delete_webhook()
+    # Установка команд бота
+    commands = [
+        BotCommand(command="start", description="Запуск бота"),
+    ]
+    await bot.set_my_commands(commands)
+    logging.info("Бот запущен и готов к работе!")
+
+
+async def on_shutdown(bot: Bot):
+    logging.warning("Shutting down..")
+
+    # Удаление webhook (опционально, но рекомендуется при остановке)
+    await bot.delete_webhook(drop_pending_updates=True)
+
+    logging.warning("Бот остановлен.")
+
+
+@dp.message_handler(commands=["start"])
+async def start_command(message: types.Message):
+    await message.reply("Привет! Я бот, работающий на Render!")
 
 
 async def main():
-    # Configure environment variables
-    WEBHOOK_HOST = '0.0.0.0'
-    WEBHOOK_PORT = os.environ.get('PORT', 8080)
+    dp.startup.register(on_startup)
+    dp.shutdown.register(on_shutdown)
 
-    # Set commands
-    await bot.set_my_commands([
-        types.BotCommand("start", "Запуск бота")
-    ])
+    # Запуск dispatcher
+    try:
+        await dp.start_webhook(
+            webhook_path=WEBHOOK_PATH,
+            skip_updates=True,
+            host=WEBAPP_HOST,
+            port=WEBAPP_PORT,
+        )
+    finally:
+        await bot.session.close()
 
-    # Configure and start application
-    executor.start_webhook(
-        dispatcher=dp,
-        webhook_path=WEBHOOK_PATH,
-        on_startup=on_startup,
-        on_shutdown=on_shutdown,
-        skip_updates=True,
-        host=WEBHOOK_HOST,
-        port=WEBHOOK_PORT,
-    )
 
-if __name__ == '__main__':
-    import asyncio
-    asyncio.run(main())
+if __name__ == "__main__":
+    try:
+        asyncio.run(main())
+    except (KeyboardInterrupt, SystemExit):
+        logging.info("Бот остановлен!")
 
 
