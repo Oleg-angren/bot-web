@@ -2,50 +2,40 @@ import asyncio
 import logging
 import os
 
-from aiogram import Bot, Dispatcher, types, Router
-from aiogram.types import BotCommand, WebAppInfo
+from aiogram import Bot, Dispatcher, types
+from aiogram.filters import Command
 
 # Настройка логирования
 logging.basicConfig(level=logging.INFO)
 
-# Настройка переменных окружения
+# Получение токена бота из переменных окружения
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 
-# Инициализация бота
+# Проверка наличия токена
+if not BOT_TOKEN:
+    logging.error("Необходимо установить переменную окружения BOT_TOKEN")
+    exit()
+
+# Инициализация бота и диспетчера
 bot = Bot(token=BOT_TOKEN)
-
-# Создание роутера
-router = Router()  # Определяем роутер ЗДЕСЬ
-
-# Инициализация диспетчера
 dp = Dispatcher()
-dp.include_router(router)  # Добавляем роутер в диспетчер
 
-@router.message(commands=["start"])  # Используем router.message
+
+# Обработчик команды /start
+@dp.message(Command("start"))
 async def start_command(message: types.Message):
-    # Создаем кнопку для открытия Web App
-    markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
-    web_app_button = types.KeyboardButton(
-        text="Открыть Web App", web_app=WebAppInfo(url="https://www.google.com")  # Замените на URL вашего Web App
-    )
-    markup.add(web_app_button)
-    await message.reply("Нажмите кнопку, чтобы открыть Web App:", reply_markup=markup)
+    await message.reply("Привет! Я эхо-бот. Просто напиши мне что-нибудь, и я повторю это.")
+
+
+# Обработчик всех остальных сообщений
+@dp.message()
+async def echo_message(message: types.Message):
+    await message.reply(message.text)
 
 
 async def main():
-    # Установка команд бота
-    commands = [
-        BotCommand(command="start", description="Запуск бота"),
-    ]
-    await bot.set_my_commands(commands)
-    logging.info("Бот запущен!")
-
-
     # Запуск Long Polling
-    try:
-        await dp.start_polling(bot)  # Передаем bot здесь
-    finally:
-        await bot.session.close()
+    await dp.start_polling(bot)
 
 
 if __name__ == "__main__":
@@ -53,6 +43,7 @@ if __name__ == "__main__":
         asyncio.run(main())
     except (KeyboardInterrupt, SystemExit):
         logging.info("Бот остановлен!")
+
 
 
 
