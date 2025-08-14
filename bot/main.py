@@ -14,12 +14,12 @@ BOT_TOKEN = os.getenv("BOT_TOKEN")
 # Инициализация бота
 bot = Bot(token=BOT_TOKEN)
 
-# Инициализация диспетчера
-dp = Dispatcher()  # Не передаем bot здесь
-dp.include_router(router) # Добавляем роутер в диспетчер
-
 # Создание роутера
-router = Router()
+router = Router()  # Определяем роутер ЗДЕСЬ
+
+# Инициализация диспетчера
+dp = Dispatcher()
+dp.include_router(router)  # Добавляем роутер в диспетчер
 
 @router.message(commands=["start"])  # Используем router.message
 async def start_command(message: types.Message):
@@ -40,8 +40,6 @@ async def main():
     await bot.set_my_commands(commands)
     logging.info("Бот запущен!")
 
-    # Регистрация бота в диспетчере
-    dp.include_router(router)  # Регистрируем роутер в диспетчере
 
     # Запуск Long Polling
     try:
@@ -55,6 +53,7 @@ if __name__ == "__main__":
         asyncio.run(main())
     except (KeyboardInterrupt, SystemExit):
         logging.info("Бот остановлен!")
+
 
 
 
