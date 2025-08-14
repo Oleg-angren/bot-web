@@ -1,39 +1,56 @@
 import asyncio
-import logging
-from aiogram import Bot, Dispatcher
-from aiogram.filters import Command
-from aiogram.types import Message
 import os
+from aiogram import Bot, Dispatcher, types
+from aiogram.contrib.middlewares.logging import LoggingMiddleware
+from aiogram.utils.executor import start_webhook
 
-# Логирование
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
-
-# Токен
+# Настройка переменных окружения
 BOT_TOKEN = os.getenv("BOT_TOKEN")
-if not BOT_TOKEN:
-    raise ValueError("BOT_TOKEN не задан")
+WEBHOOK_URL = os.getenv("WEBHOOK_URL")
+WEBHOOK_PATH = "/webhook"
+WEBHOOK_ROUTE = WEBHOOK_URL + WEBHOOK_PATH
 
-# Бот и диспетчер
+# Инициализация бота и диспетчера
 bot = Bot(token=BOT_TOKEN)
-dp = Dispatcher()
+dp = Dispatcher(bot)
+dp.middleware.setup(LoggingMiddleware())
 
-# Обработчик /start
-@dp.message(Command("start"))
-async def cmd_start(message: Message):
-    await message.answer("🚀 Бот работает 24/7 на Render (Worker)!")
 
-# Эхо
-@dp.message()
-async def echo(message: Message):
-    await message.answer(f"Ты сказал: {message.text}")
+async def on_startup(dp):
+    await bot.set_webhook(WEBHOOK_ROUTE)
+    # Установите Webhook при запуске
 
-# Запуск
+
+async def on_shutdown(dp):
+    # Удалите Webhook при остановке (опционально)
+    await bot.delete_webhook()
+
+
+@dp.message_handler(commands=["start"])
+async def start_command(message: types.Message):
+    await message.reply("Привет! Я бот, работающий на Render!")
+
+
 async def main():
-    logger.info("Бот запускается...")
-    await bot.delete_webhook(drop_pending_updates=True)
-    await dp.start_polling(bot)
+    # Настройка команд бота
+    await bot.set_my_commands([
+        types.BotCommand("start", "Запуск бота")
+    ])
 
-if __name__ == "__main__":
-   asyncio.run(main())
+    # Запуск Webhook
+    WEBAPP_HOST = "0.0.0.0"  # Слушаем все входящие соединения
+    WEBAPP_PORT = int(os.environ.get("PORT", 8000))
+
+    start_webhook(
+        dispatcher=dp,
+        webhook_path=WEBHOOK_PATH,
+        skip_updates=True,  # Пропускаем старые обновления
+        on_startup=on_startup,
+        on_shutdown=on_shutdown,
+        host=WEBAPP_HOST,
+        port=WEBAPP_PORT,
+    )
+
+if __name__ == '__main__':
+    asyncio.run(main())
 
