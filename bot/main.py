@@ -24,7 +24,7 @@ dp = Dispatcher()
 # Обработчик команды /start
 @dp.message(Command("start"))
 async def start_command(message: types.Message):
-    await message.reply("Привет! Я эхо-бот. Просто напиши мне что-нибудь, и я повторю это.")
+    await message.reply("Привет Привет! Я эхо-бот. Просто напиши мне что-нибудь, и я повторю это.")
 
 
 # Обработчик всех остальных сообщений
